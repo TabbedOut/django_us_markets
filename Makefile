@@ -21,5 +21,5 @@ data/us_census_bureau/zip_codes_2013.zip:
 	curl http://www2.census.gov/geo/tiger/TIGER2013/ZCTA5/tl_2013_us_zcta510.zip \
 		> data/us_census_bureau/zip_codes_2013.zip
 
-data/us_census_bureau/zip_codes_2013/zip_codes_2013:
+data/us_census_bureau/zip_codes_2013/zip_codes_2013: data/us_census_bureau/zip_codes_2013.zip
 	unzip data/us_census_bureau/zip_codes_2013.zip -d data/us_census_bureau/zip_codes_2013

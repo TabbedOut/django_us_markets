@@ -1,1 +1,2 @@
+csvkit==0.7.3
 django-localflavor-us>=1.0

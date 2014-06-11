@@ -16,6 +16,10 @@ GEO_CSV = 'data/geonames/us_zip_codes.csv'
 
 
 class ZIPCodeMapping(LayerMapping):
+    """
+    Loads ZIP code shapefiles and associates the resulting models with
+    existing place data.
+    """
     mapping = {'id': 'ZCTA5CE10', 'tabulation': 'MULTIPOLYGON'}
 
     def __init__(self, model, data, mapping=None, **kwargs):
@@ -35,15 +39,24 @@ class ZIPCodeMapping(LayerMapping):
 
 
 def make_path(*paths):
+    """
+    Get a complete path to a file in the places app.
+    """
     return os.path.join(settings.PROJECT_ROOT, 'lib/modelo/places', *paths)
 
 
 def read_utf8(stream):
+    """
+    Transform a stream into generator of UTF-8 encoded lines.
+    """
     for line in stream:
         yield line.encode('utf-8')
 
 
-def load_zip_codes():
+def load_places():
+    """
+    Reload all places from primary data.
+    """
     zip_code_data, community_data, market_data = get_place_data()
 
     # Reload all communities
@@ -68,6 +81,9 @@ def load_zip_codes():
 
 
 def read_owcp():
+    """
+    Iterates over the MSA data from the Department of Labor.
+    """
     msa_csv = make_path(MSA_CSV)
     with codecs.open(msa_csv, 'r', encoding='iso-8859-1') as stream:
         utf8_stream = read_utf8(stream)
@@ -78,7 +94,7 @@ def read_owcp():
 
 def read_geonames():
     """
-
+    Iterates over the community data from Geonames.
     """
     geo_csv = make_path(GEO_CSV)
     with codecs.open(geo_csv, 'r', encoding='iso-8859-1') as stream:
@@ -130,4 +146,4 @@ def get_place_data():
 
 
 if __name__ == '__main__':
-    load_zip_codes()
+    load_places()

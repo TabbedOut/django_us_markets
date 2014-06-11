@@ -40,8 +40,8 @@ Building the dataset
 
 The app can download and build the dataset from primary data.
 
-1. `export PYTHONPATH=.:lib:lib/modelo`
-2. `export DJANGO_SETTINGS_MODULE=...`
+1. `export PYTHONPATH=.:lib:lib/modelo:lib/site-packages`
+2. `export DJANGO_SETTINGS_MODULE=consumer_services.settings.development`
 3. `cd lib/modelo/places && make`
 4. `cd ../../.. && python lib/modelo/places/load.py`
 
