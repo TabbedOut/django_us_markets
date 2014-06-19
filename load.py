@@ -30,7 +30,7 @@ class ZIPCodeMapping(LayerMapping):
 
     def feature_kwargs(self, feature):
         kwargs = super(ZIPCodeMapping, self).feature_kwargs(feature)
-        zip_code = str(kwargs['id'])
+        zip_code = str(kwargs['id']).zfill(5)
         extra_kwargs = self.zip_code_data[zip_code]
         latitude = feature['INTPTLAT10'].as_double()
         longitude = feature['INTPTLON10'].as_double()
