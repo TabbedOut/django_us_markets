@@ -7,7 +7,7 @@ from django.conf import settings
 from django.contrib.gis.geos import Point
 from django.contrib.gis.utils import LayerMapping
 
-from places.models import Community, Market, ZIPCode
+from places.models import Community, Market, PostalCode
 
 
 ZIP_SHP = 'data/us_census_bureau/zip_codes_2013/tl_2013_us_zcta510'
@@ -20,21 +20,35 @@ class ZIPCodeMapping(LayerMapping):
     Loads ZIP code shapefiles and associates the resulting models with
     existing place data.
     """
-    mapping = {'id': 'ZCTA5CE10', 'tabulation': 'MULTIPOLYGON'}
+    mapping = {
+        'postal_code': 'ZCTA5CE10',
+        'tabulation': 'MULTIPOLYGON'
+    }
 
     def __init__(self, model, data, mapping=None, **kwargs):
-        kwargs.setdefault('unique', 'id')
+        kwargs.setdefault('unique', 'postal_code')
+        kwargs.setdefault('encoding', 'latin-1')
         mapping = mapping or self.mapping
         self.zip_code_data = kwargs.pop('zip_code_data')
         super(ZIPCodeMapping, self).__init__(model, data, mapping, **kwargs)
 
     def feature_kwargs(self, feature):
         kwargs = super(ZIPCodeMapping, self).feature_kwargs(feature)
-        zip_code = str(kwargs['id']).zfill(5)
-        extra_kwargs = self.zip_code_data[zip_code]
+
         latitude = feature['INTPTLAT10'].as_double()
         longitude = feature['INTPTLON10'].as_double()
-        extra_kwargs['center'] = Point(longitude, latitude)
+        center = Point(longitude, latitude)
+
+        number = kwargs['postal_code']
+        zip_code = str(number).zfill(5)
+        extra_kwargs = self.zip_code_data[zip_code]
+        extra_kwargs.update(
+            id=number,
+            center=center,
+            postal_code=zip_code,
+            country=u'US'
+        )
+
         return dict(kwargs, **extra_kwargs)
 
 
@@ -74,15 +88,15 @@ def load_places():
     ])
 
     # Reload all ZIP codes
-    ZIPCode.objects.all().delete()
+    PostalCode.objects.all().delete()
     zip_shp = make_path(ZIP_SHP + '.shp')
-    mapping = ZIPCodeMapping(ZIPCode, zip_shp, zip_code_data=zip_code_data)
+    mapping = ZIPCodeMapping(PostalCode, zip_shp, zip_code_data=zip_code_data)
     mapping.save()
 
 
 def read_owcp():
     """
-    Iterates over the MSA data from the Department of Labor.
+    Iterate over the MSA data from the Department of Labor.
     """
     msa_csv = make_path(MSA_CSV)
     with codecs.open(msa_csv, 'r', encoding='iso-8859-1') as stream:
@@ -94,7 +108,7 @@ def read_owcp():
 
 def read_geonames():
     """
-    Iterates over the community data from Geonames.
+    Iterate over the community data from Geonames.
     """
     geo_csv = make_path(GEO_CSV)
     with codecs.open(geo_csv, 'r', encoding='iso-8859-1') as stream:

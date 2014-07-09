@@ -1,5 +1,4 @@
 from django.contrib.gis.db import models
-from django_localflavor_us.models import USStateField
 
 
 class Community(models.Model):
@@ -30,29 +29,30 @@ class Market(models.Model):
         return self.name
 
 
-class ZIPCode(models.Model):
+class PostalCode(models.Model):
     """
-    Zone Improvement Plan, or United States postal code.
+    A postal code representing a general location.
 
     Shapes are sourced from ZIP code tabulation area data provided by
     the US Census Bureau.
     """
 
-    id = models.IntegerField(primary_key=True)
-    state = USStateField()
+    postal_code = models.CharField(max_length=7, unique=True)
+    state = models.SlugField(max_length=255)
+    country = models.SlugField(max_length=2, help_text='ISO 3166-1 alpha-2')
     market = models.ForeignKey(
         to=Market,
         blank=True, null=True,
-        related_name='zip_codes'
+        related_name='postal_codes'
     )
     community = models.ForeignKey(
         to=Community,
         blank=True, null=True,
-        related_name='zip_codes'
+        related_name='postal_codes'
     )
 
     center = models.PointField(db_index=False)
     tabulation = models.MultiPolygonField(db_index=False)
 
     def __unicode__(self):
-        return unicode(self.id)
+        return self.postal_code

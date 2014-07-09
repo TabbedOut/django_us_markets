@@ -1,7 +1,7 @@
 Places
 ======
 
-A Django app for GIS data, including ZIP codes, metropolitan areas, and community names.
+A Django app for GIS data, including postal codes, metropolitan areas, and community names.
 
 
 Installation
@@ -49,11 +49,11 @@ The app can download and build the dataset from primary data.
 Example Queries
 ---
 
-Site users by ZIP code:
+Site users by postal code:
 
-    select u.username, z.id as zip_code, z.state, m.name as market, c.name as community
-    from places_zipcode z
-    join device_locatelog l on ST_Contains(z.tabulation, POINT(l.longitude, l.latitude))
+    select u.username, p.postal_code, p.state, m.name as market, c.name as community
+    from places_postalcode p
+    join device_locatelog l on ST_Contains(p.tabulation, POINT(l.longitude, l.latitude))
     left join profiles_siteuser u on l.user_id = u.id
-    left join places_market m on z.market_id = m.id
-    left join places_community c on z.community_id = c.id;
+    left join places_market m on p.market_id = m.id
+    left join places_community c on p.community_id = c.id;
