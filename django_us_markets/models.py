@@ -11,6 +11,9 @@ class Community(models.Model):
     id = models.IntegerField(primary_key=True)
     name = models.CharField(max_length=100)
 
+    class Meta:
+        verbose_name_plural = 'communities'
+
     def __unicode__(self):
         return self.name
 
@@ -36,6 +39,8 @@ class PostalCode(models.Model):
     Shapes are sourced from ZIP code tabulation area data provided by
     the US Census Bureau.
     """
+
+    objects = models.GeoManager()
 
     postal_code = models.CharField(max_length=7, unique=True)
     state = models.SlugField(max_length=255)

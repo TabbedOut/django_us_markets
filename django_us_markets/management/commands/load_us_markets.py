@@ -1,9 +1,10 @@
+from django.core.management import BaseCommand
+
 import codecs
 import collections
 import csv
 import os
 
-import django; django.setup()
 from django.contrib.gis.geos import Point, MultiPolygon, Polygon
 from django_us_markets.models import Community, Market, PostalCode
 from django_us_markets.mappings import PostalCodeMapping
@@ -14,21 +15,16 @@ MSA_CSV = 'department_of_labor/owcp_fee_schedule_by_zip_2011.csv'
 GEO_CSV = 'geonames/us_zip_codes.csv'
 
 
-def make_path(*paths):
-    """
-    Get a complete path to a downloaded data file.
-    """
-    root = os.path.abspath(os.path.join(__file__, '..'))
-    return os.path.join(root, 'data', *paths)
+class Command(BaseCommand):
+
+    help = "Delete and reload all US markets from source data"
+
+    def handle(self, *args, **options):
+        reload_places()
 
 
-def read_utf8(stream):
-    """
-    Transform a stream into generator of UTF-8 encoded lines.
-    """
-    for line in stream:
-        yield line.encode('utf-8')
-
+# Helpers
+#########
 
 def reload_places():
     """
@@ -83,6 +79,39 @@ def reload_places():
             )
 
 
+def get_place_data():
+    """
+    Get a tuple of `(zip_code_data, community_data, market_data)`.
+
+    Each dataset is a dict mapping IDs to model data.
+    """
+    zip_code_data = collections.defaultdict(dict)
+
+    for zip_code, owcp_data in read_owcp():
+        zip_code_data[zip_code].update(owcp_data)
+
+    for zip_code, geonames_data in read_geonames():
+        zip_code_data[zip_code].update(geonames_data)
+
+    community_data, market_data = dict(), dict()
+    for zip_code, data in zip_code_data.iteritems():
+        community_id = data.pop('community_id', None)
+        community_name = data.pop('community_name', None) or 'N/A'
+        if community_id:
+            community_id = int(float(community_id))
+            community_data.setdefault(community_id, community_name)
+
+        msa_id = data.pop('msa_id', None)
+        msa_name = data.pop('msa_name', None) or 'N/A'
+        if msa_id:
+            msa_id = int(float(msa_id))
+            market_data.setdefault(msa_id, msa_name)
+
+        data.update(community_id=community_id, market_id=msa_id)
+
+    return zip_code_data, community_data, market_data
+
+
 def read_owcp():
     """
     Iterate over the MSA data from the Department of Labor.
@@ -120,38 +149,18 @@ def read_geonames():
             )
 
 
-def get_place_data():
+def make_path(*paths):
     """
-    Get a tuple of `(zip_code_data, community_data, market_data)`.
-
-    Each dataset is a dict mapping IDs to model data.
+    Get a complete path to a downloaded data file.
     """
-    zip_code_data = collections.defaultdict(dict)
-
-    for zip_code, owcp_data in read_owcp():
-        zip_code_data[zip_code].update(owcp_data)
-
-    for zip_code, geonames_data in read_geonames():
-        zip_code_data[zip_code].update(geonames_data)
-
-    community_data, market_data = dict(), dict()
-    for zip_code, data in zip_code_data.iteritems():
-        community_id = data.pop('community_id', None)
-        community_name = data.pop('community_name', None) or 'N/A'
-        if community_id:
-            community_id = int(float(community_id))
-            community_data.setdefault(community_id, community_name)
-
-        msa_id = data.pop('msa_id', None)
-        msa_name = data.pop('msa_name', None) or 'N/A'
-        if msa_id:
-            msa_id = int(float(msa_id))
-            market_data.setdefault(msa_id, msa_name)
-
-        data.update(community_id=community_id, market_id=msa_id)
-
-    return zip_code_data, community_data, market_data
+    relative_path = os.path.join(__file__, '..', '..', '..', 'data')
+    absolute_path = os.path.abspath(relative_path)
+    return os.path.join(absolute_path, *paths)
 
 
-if __name__ == '__main__':
-    reload_places()
+def read_utf8(stream):
+    """
+    Transform a stream into generator of UTF-8 encoded lines.
+    """
+    for line in stream:
+        yield line.encode('utf-8')
