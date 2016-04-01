@@ -3,63 +3,23 @@ import collections
 import csv
 import os
 
-from django.conf import settings
+import django; django.setup()
 from django.contrib.gis.geos import Point, MultiPolygon, Polygon
-from django.contrib.gis.utils import LayerMapping
-from django_localflavor_us.forms import USStateField
-
-from places.models import Community, Market, PostalCode
+from django_us_markets.models import Community, Market, PostalCode
+from django_us_markets.mappings import PostalCodeMapping
 
 
-ZIP_SHP = 'data/us_census_bureau/zip_codes_2013/tl_2013_us_zcta510'
-MSA_CSV = 'data/department_of_labor/owcp_fee_schedule_by_zip_2011.csv'
-GEO_CSV = 'data/geonames/us_zip_codes.csv'
-
-
-class ZIPCodeMapping(LayerMapping):
-    """
-    Loads ZIP code shapefiles and associates the resulting models with
-    existing place data.
-    """
-    mapping = {
-        'postal_code': 'ZCTA5CE10',
-        'tabulation': 'MULTIPOLYGON'
-    }
-
-    def __init__(self, model, data, mapping=None, **kwargs):
-        kwargs.setdefault('unique', 'postal_code')
-        kwargs.setdefault('encoding', 'latin-1')
-        mapping = mapping or self.mapping
-        self.zip_code_data = dict(kwargs.pop('zip_code_data'))
-        super(ZIPCodeMapping, self).__init__(model, data, mapping, **kwargs)
-
-    def feature_kwargs(self, feature):
-        kwargs = super(ZIPCodeMapping, self).feature_kwargs(feature)
-
-        latitude = feature['INTPTLAT10'].as_double()
-        longitude = feature['INTPTLON10'].as_double()
-        center = Point(longitude, latitude)
-
-        number = kwargs['postal_code']
-        zip_code = str(number).zfill(5)
-        extra_kwargs = self.zip_code_data[zip_code]
-        extra_kwargs.pop('latitude', None)
-        extra_kwargs.pop('longitude', None)
-        extra_kwargs.update(
-            id=number,
-            center=center,
-            postal_code=zip_code,
-            country=u'US'
-        )
-
-        return dict(kwargs, **extra_kwargs)
+ZIP_SHP = 'us_census_bureau/zip_codes_2014/tl_2014_us_zcta510'
+MSA_CSV = 'department_of_labor/owcp_fee_schedule_by_zip_2011.csv'
+GEO_CSV = 'geonames/us_zip_codes.csv'
 
 
 def make_path(*paths):
     """
-    Get a complete path to a file in the places app.
+    Get a complete path to a downloaded data file.
     """
-    return os.path.join(settings.PROJECT_ROOT, 'lib/modelo/places', *paths)
+    root = os.path.abspath(os.path.join(__file__, '..'))
+    return os.path.join(root, 'data', *paths)
 
 
 def read_utf8(stream):
@@ -70,7 +30,7 @@ def read_utf8(stream):
         yield line.encode('utf-8')
 
 
-def load_places():
+def reload_places():
     """
     Reload all places from primary data.
     """
@@ -93,7 +53,11 @@ def load_places():
     # Reload all ZIP codes
     PostalCode.objects.all().delete()
     zip_shp = make_path(ZIP_SHP + '.shp')
-    mapping = ZIPCodeMapping(PostalCode, zip_shp, zip_code_data=zip_code_data)
+    mapping = PostalCodeMapping(
+        model=PostalCode,
+        data=zip_shp,
+        zip_code_data=zip_code_data
+    )
     mapping.save()
 
     # Create any ZIP codes that were missing from the Census tabulation.
@@ -190,4 +154,4 @@ def get_place_data():
 
 
 if __name__ == '__main__':
-    load_places()
+    reload_places()

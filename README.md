@@ -7,13 +7,7 @@ A Django app for GIS data, including postal codes, metropolitan areas, and commu
 Installation
 ---
 
-First, check out the repo in `lib/modelo`.
-
-Install any requirements:
-
-    pip install -r requirements.txt
-
-Configure `django.contrib.gis` and install the `places` app:
+Configure `django.contrib.gis` and install the app:
 
     # settings.py
     DATABASES = {
@@ -26,13 +20,12 @@ Configure `django.contrib.gis` and install the `places` app:
     INSTALLED_APPS = [
         # ...
         'django.contrib.gis',
-        'places'
+        'django_us_markets',
     ]
 
 Finally, migrate the app to sync the models to the database:
 
     python manage.py migrate places
-
 
 
 Building the dataset
