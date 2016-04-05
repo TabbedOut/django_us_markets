@@ -25,7 +25,7 @@ Configure `django.contrib.gis` and install the app:
 
 Finally, migrate the app to sync the models to the database:
 
-    python manage.py migrate places
+    python manage.py migrate django_us_markets
 
 
 Building the dataset
@@ -33,12 +33,13 @@ Building the dataset
 
 The app can download and build the dataset from primary data.
 
-  $ cdsitepackages
-  $ cd django_us_markets
+For now, loading data requires an editable install:
+
+  $ pip install -e /path/to/django_us_markets
+  $ cd /path/to/django_us_markets
   $ make
-  $ export PYTHONPATH=/my/project
-  $ export DJANGO_SETTINGS_MODULE=project.settings
-  $ python load.py
+  $ cd /path/to/project
+  $ python manage.py load_us_markets
 
 
 Example Queries
