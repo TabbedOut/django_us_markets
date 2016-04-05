@@ -42,6 +42,15 @@ For now, loading data requires an editable install:
   $ python manage.py load_us_markets
 
 
+Testing
+---
+
+  $ make build
+  $ make test
+
+Building and running the test container requires Docker.
+
+
 Example Queries
 ---
 

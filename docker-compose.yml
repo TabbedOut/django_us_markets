@@ -1,0 +1,16 @@
+version: '2'
+services:
+  app:
+    build: .
+    volumes:
+      - ./django_us_markets/data:/app/django_us_markets/data:ro
+    depends_on:
+      - postgis
+  postgis:
+    image: mdillon/postgis:9.5
+    environment:
+      POSTGRES_DB: django_us_markets
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: mysecretpassword
+    ports:
+      - 5432:5432

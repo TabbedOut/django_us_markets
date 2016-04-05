@@ -1,5 +1,14 @@
 data: data/geonames/us_zip_codes.csv data/department_of_labor/owcp_fee_schedule_by_zip_2011.csv data/us_census_bureau/zip_codes_2014/zip_codes_2014
 
+build:
+	docker-compose build
+
+test:
+	docker-compose run app test --noinput
+
+bash:
+	docker run -it --entrypoint /bin/bash django_us_markets
+
 data/geonames/US.zip:
 	curl http://download.geonames.org/export/zip/US.zip > data/geonames/US.zip
 
