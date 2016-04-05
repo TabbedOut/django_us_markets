@@ -21,4 +21,5 @@ setup(
         'Environment :: Web Environment',
         'License :: OSI Approved :: MIT License',
     ],
+    zip_safe=False,
 )
