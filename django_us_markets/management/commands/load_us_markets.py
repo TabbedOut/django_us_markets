@@ -1,7 +1,7 @@
 import codecs
 import collections
 import csv
-import os
+from optparse import make_option
 
 from django.contrib.gis.geos import Point, MultiPolygon, Polygon
 from django.core.management import BaseCommand
@@ -21,18 +21,24 @@ class Command(BaseCommand):
 
     help = "Delete and reload all US markets from source data"
 
+    option_list = BaseCommand.option_list + (
+        make_option('-d', '--data_path', action='store', dest='data_path',
+                    default=None, help='A custom path to the source data.'),
+    )
+
     def handle(self, *args, **options):
-        reload_places()
+        root = options['data_path']
+        reload_places(root)
 
 
 # Helpers
 #########
 
-def reload_places():
+def reload_places(root=None):
     """
     Reload all places from primary data.
     """
-    zip_code_data, community_data, market_data = get_place_data()
+    zip_code_data, community_data, market_data = get_place_data(root)
 
     # Reload all communities
     Community.objects.all().delete()
@@ -50,7 +56,7 @@ def reload_places():
 
     # Reload all ZIP codes
     PostalCode.objects.all().delete()
-    zip_shp = make_path(ZIP_SHP + '.shp')
+    zip_shp = make_path(ZIP_SHP + '.shp', root=root)
     mapping = PostalCodeMapping(
         model=PostalCode,
         data=zip_shp,
@@ -81,7 +87,7 @@ def reload_places():
             )
 
 
-def get_place_data():
+def get_place_data(root):
     """
     Get a tuple of `(zip_code_data, community_data, market_data)`.
 
@@ -89,10 +95,10 @@ def get_place_data():
     """
     zip_code_data = collections.defaultdict(dict)
 
-    for zip_code, owcp_data in read_owcp():
+    for zip_code, owcp_data in read_owcp(root):
         zip_code_data[zip_code].update(owcp_data)
 
-    for zip_code, geonames_data in read_geonames():
+    for zip_code, geonames_data in read_geonames(root):
         zip_code_data[zip_code].update(geonames_data)
 
     community_data, market_data = dict(), dict()
@@ -114,11 +120,11 @@ def get_place_data():
     return zip_code_data, community_data, market_data
 
 
-def read_owcp():
+def read_owcp(root):
     """
     Iterate over the MSA data from the Department of Labor.
     """
-    msa_csv = make_path(MSA_CSV)
+    msa_csv = make_path(MSA_CSV, root=root)
     with codecs.open(msa_csv, 'r', encoding='iso-8859-1') as stream:
         utf8_stream = read_utf8(stream)
         reader = csv.DictReader(utf8_stream)
@@ -131,11 +137,11 @@ def read_owcp():
             )
 
 
-def read_geonames():
+def read_geonames(root):
     """
     Iterate over the community data from Geonames.
     """
-    geo_csv = make_path(GEO_CSV)
+    geo_csv = make_path(GEO_CSV, root=root)
     with codecs.open(geo_csv, 'r', encoding='iso-8859-1') as stream:
         utf8_stream = read_utf8(stream)
         reader = csv.reader(utf8_stream)
