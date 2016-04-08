@@ -1,18 +1,20 @@
-from django.core.management import BaseCommand
-
 import codecs
 import collections
 import csv
 import os
 
 from django.contrib.gis.geos import Point, MultiPolygon, Polygon
+from django.core.management import BaseCommand
 from django_us_markets.models import Community, Market, PostalCode
 from django_us_markets.mappings import PostalCodeMapping
 
+from ...data import make_path
+from ...data import ZIP_METADATA, ZIP_SHAPES, MSA_DATA
 
-ZIP_SHP = 'us_census_bureau/zip_codes_2014/tl_2014_us_zcta510'
-MSA_CSV = 'department_of_labor/owcp_fee_schedule_by_zip_2011.csv'
-GEO_CSV = 'geonames/us_zip_codes.csv'
+
+ZIP_SHP = ZIP_SHAPES
+MSA_CSV = MSA_DATA
+GEO_CSV = ZIP_METADATA
 
 
 class Command(BaseCommand):
@@ -147,15 +149,6 @@ def read_geonames():
                 latitude=float(latitude),
                 longitude=float(longitude)
             )
-
-
-def make_path(*paths):
-    """
-    Get a complete path to a downloaded data file.
-    """
-    relative_path = os.path.join(__file__, '..', '..', '..', 'data')
-    absolute_path = os.path.abspath(relative_path)
-    return os.path.join(absolute_path, *paths)
 
 
 def read_utf8(stream):

@@ -3,7 +3,7 @@ services:
   app:
     build: .
     volumes:
-      - ./django_us_markets/data:/app/django_us_markets/data:ro
+      - .:/app
     depends_on:
       - postgis
   postgis:

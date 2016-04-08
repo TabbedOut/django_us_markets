@@ -33,19 +33,14 @@ Building the dataset
 
 The app can download and build the dataset from primary data.
 
-For now, loading data requires an editable install:
-
-  $ pip install -e /path/to/django_us_markets
-  $ cd /path/to/django_us_markets
-  $ make
-  $ cd /path/to/project
+  $ python manage.py download_us_markets
   $ python manage.py load_us_markets
 
 
 Testing
 ---
 
-  $ make build
+  $ make download
   $ make test
 
 Building and running the test container requires Docker.

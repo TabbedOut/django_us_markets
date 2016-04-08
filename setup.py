@@ -17,6 +17,9 @@ setup(
     packages=find_packages(exclude=('tests', 'docs')),
     test_suite='tests',
     install_requires=[],
+    extras_require={
+        'data': ['csvkit<1'],
+    },
     classifiers=[
         'Environment :: Web Environment',
         'License :: OSI Approved :: MIT License',
