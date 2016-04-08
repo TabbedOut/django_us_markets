@@ -1,11 +1,26 @@
 build:
 	docker-compose build
 
+test:
+	docker-compose run app test --noinput
+
 download:
 	docker-compose run app download_us_markets
 
-test:
-	docker-compose run app test --noinput
+migrate:
+	docker-compose run app migrate --noinput
+
+collectstatic:
+	docker-compose run app collectstatic --noinput
+
+createsuperuser:
+	docker-compose run app createsuperuser
+
+import: migrate
+	docker-compose run app import_us_markets --noinput
+
+serve: migrate collectstatic
+	docker-compose up
 
 bash:
 	docker run -it --entrypoint /bin/bash django_us_markets

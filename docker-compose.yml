@@ -4,8 +4,11 @@ services:
     build: .
     volumes:
       - .:/app
+    ports:
+      - "8000:8000"
     depends_on:
       - postgis
+    command: runserver 0.0.0.0:8000
   postgis:
     image: mdillon/postgis:9.5
     environment:
