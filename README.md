@@ -34,7 +34,7 @@ Building the dataset
 The app can download and build the dataset from primary data.
 
   $ python manage.py download_us_markets
-  $ python manage.py load_us_markets
+  $ python manage.py import_us_markets
 
 
 Testing
