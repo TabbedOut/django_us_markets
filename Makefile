@@ -17,7 +17,7 @@ createsuperuser:
 	docker-compose run app createsuperuser
 
 import: migrate
-	docker-compose run app import_us_markets --noinput
+	docker-compose run app import_us_markets
 
 serve: migrate collectstatic
 	docker-compose up

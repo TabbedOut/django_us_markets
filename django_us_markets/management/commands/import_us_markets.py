@@ -12,9 +12,7 @@ from ...data import make_path
 from ...data import ZIP_METADATA, ZIP_SHAPES, MSA_DATA
 
 
-ZIP_SHP = ZIP_SHAPES
-MSA_CSV = MSA_DATA
-GEO_CSV = ZIP_METADATA
+ZIP_SHAPEFILE = ZIP_SHAPES + '.shp'
 
 
 class Command(BaseCommand):
@@ -56,7 +54,7 @@ def reload_places(root=None):
 
     # Reload all ZIP codes
     PostalCode.objects.all().delete()
-    zip_shp = make_path(ZIP_SHP + '.shp', root=root)
+    zip_shp = make_path(ZIP_SHAPEFILE, root=root)
     mapping = PostalCodeMapping(
         model=PostalCode,
         data=zip_shp,
@@ -124,7 +122,7 @@ def read_owcp(root):
     """
     Iterate over the MSA data from the Department of Labor.
     """
-    msa_csv = make_path(MSA_CSV, root=root)
+    msa_csv = make_path(MSA_DATA, root=root)
     with codecs.open(msa_csv, 'r', encoding='iso-8859-1') as stream:
         utf8_stream = read_utf8(stream)
         reader = csv.DictReader(utf8_stream)
@@ -141,7 +139,7 @@ def read_geonames(root):
     """
     Iterate over the community data from Geonames.
     """
-    geo_csv = make_path(GEO_CSV, root=root)
+    geo_csv = make_path(ZIP_METADATA, root=root)
     with codecs.open(geo_csv, 'r', encoding='iso-8859-1') as stream:
         utf8_stream = read_utf8(stream)
         reader = csv.reader(utf8_stream)
